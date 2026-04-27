@@ -1,6 +1,17 @@
-﻿namespace ISeeU.Application.CommandHandlers;
+﻿using ISeeU.Application.AbstractClasses;
+using ISeeU.Application.Services;
 
-public class SubscribeCommandHandler
+namespace ISeeU.Application.CommandHandlers;
+
+public class SubscribeCommandHandler(CommandHandler next) : CommandHandler(next)
 {
-    
+    protected override bool CanHandle(string command)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void Handle(string message, SurveillanceManager manager)
+    {
+        throw new NotImplementedException();
+    }
 }
