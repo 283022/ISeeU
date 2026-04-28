@@ -1,6 +1,8 @@
-﻿namespace ISeeU.Application.Contracts;
+﻿using ISeeU.Domain.Interfaces;
 
-public interface IUAtomationProvider
+namespace ISeeU.Application.Contracts;
+
+public interface IUIAutomationProvider
 {
     public IElement FindElement(System.Drawing.Point location);
     public IElement GetFocusedElement();
@@ -10,7 +12,7 @@ public interface IUAtomationProvider
     void UnsubscribeFromFocusChange(IUIAutomationFocusChangedEventHandler handler);
     */
     
-    int[] GetSupportedProperties(IElement element);
-    ITargetObserver CreateTargetObserver(int propertyId, Action<int,object> onPropertyChanged);
-    
+    public string[] GetSupportedProperties(IElement element);
+
+    public bool ElementIsAlive(IElement element);
 }

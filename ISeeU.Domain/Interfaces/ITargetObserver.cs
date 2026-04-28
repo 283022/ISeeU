@@ -1,4 +1,4 @@
-﻿namespace ISeeU.Application.Contracts;
+﻿namespace ISeeU.Domain.Interfaces;
 
 public interface ITargetObserver
 {

@@ -1,5 +1,6 @@
 ﻿using Interop.UIAutomationClient;
 using ISeeU.Application.Contracts;
+using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
@@ -16,6 +17,7 @@ public class TargetObserverWinApi30 : ITargetObserver
         _propertyId = propertyId;
         _callback = callback;
         _automation = automation;
+        _comHandler = new PropertyChangeHandler(propertyId, callback);
     }
 
     public void Start(IElement element)

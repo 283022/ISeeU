@@ -1,4 +1,4 @@
-﻿namespace ISeeU.Application.Contracts;
+﻿namespace ISeeU.Domain.Interfaces;
 
 public interface IElement
 {
@@ -6,7 +6,7 @@ public interface IElement
     int ProcessId { get; }
     int ControlType { get; }
     //Rect BoundingRectangle { get; }
-    int[] GetSupportedProperties();
+    string[] GetSupportedProperties();
 }
 
 //class Rect need for Painting Element on a board

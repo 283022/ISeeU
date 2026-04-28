@@ -2,6 +2,7 @@
 
 namespace ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
+//this class implemented Observer witch being inside IUIAutomationWinApi3.0
 public class PropertyChangeHandler(int id, Action<int, object> callback)
     : IUIAutomationPropertyChangedEventHandler
 {

@@ -1,9 +1,9 @@
 ﻿using Interop.UIAutomationClient;
-using ISeeU.Application.Contracts;
+using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
-public class WindowsElement(IUIAutomationElement nativeElement) : IElement
+public class WindowsElement(IUIAutomationElement nativeElement, CUIAutomation8 automation8) : IElement
 {
     private IUIAutomationElement _nativeElement = nativeElement;
 
@@ -12,9 +12,11 @@ public class WindowsElement(IUIAutomationElement nativeElement) : IElement
     public int ControlType => _nativeElement.CurrentControlType;
     
 
-    public int[] GetSupportedProperties()
+    public string[] GetSupportedProperties()
     { 
-        throw new NotImplementedException();
+       automation8.PollForPotentialSupportedProperties(_nativeElement, out int[] propertyIds,
+            out string[] supportedProperties);
+        return supportedProperties;
     }
     
     public IUIAutomationElement  GetNativeElement()

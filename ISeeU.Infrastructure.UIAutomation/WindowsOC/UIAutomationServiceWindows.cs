@@ -1,55 +1,47 @@
 ﻿using System.Drawing;
 using Interop.UIAutomationClient;
 using ISeeU.Application.Contracts;
+using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
-public class UIAutomationServiceWindows : IUAtomationProvider
+public class UIAutomationServiceWindows : IUIAutomationProvider
 {
-    private readonly CUIAutomation8 _automation = new CUIAutomation8();
-    public UIAutomationServiceWindows()
-    {
-        var desktop = _automation.GetRootElement();
-    }
+    private readonly CUIAutomation8 _automation = new();
+    
     public IElement FindElement(Point location)
     {
         var rect = new tagPOINT { x = location.X, y = location.Y };
         var element = _automation.ElementFromPoint(rect);
-        return new WindowsElement(element);
+        return new WindowsElement(element, _automation);
     }
 
     public IElement GetFocusedElement()
     {
         var element = _automation.GetFocusedElement();
-        return new WindowsElement(element);
+        return new WindowsElement(element, _automation);
     }
 
-    public int[] GetSupportedProperties(IElement element)
+    public string[] GetSupportedProperties(IElement element)
     {
-        throw new NotImplementedException();
+        if (element is not IUIAutomationElement element5) throw new NotSupportedException("Unsupported element type");
+        _automation.PollForPotentialSupportedProperties(element5, out int[] propertyIds,
+            out string[] supportedProperties);
+        return supportedProperties;
     }
 
-    /*
-    public int[] GetSupportedProperties(IElement element)
+    public bool ElementIsAlive(IElement element)
     {
-        if (element is WindowsElement elementWin)
-        {
-            elementWin.GetNativeElement();
-        }
-    }
-*/
-    
-    public ITargetObserver CreateTargetObserver(int propertyId, Action<int, object> onPropertyChanged)
-    {
-        throw new NotImplementedException();
+        //checking if the element is dead 
+        if (element is not WindowsElement winElement) return false;
+        //try to give him nint; if element is dead - handle = 0, else - handle!=0
+        var handle = winElement.GetNativeElement().CurrentNativeWindowHandle;
+        return handle != IntPtr.Zero;
     }
 
-    /*
-    Not sure about this method. 'cause in abstract classes it doesn't need 
-    
+
     public CUIAutomation8 GetCUIAutomation()
     {
         return _automation;
     }
-    */
 }
