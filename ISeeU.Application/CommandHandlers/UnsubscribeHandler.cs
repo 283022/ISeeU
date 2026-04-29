@@ -3,7 +3,7 @@ using ISeeU.Application.Services;
 
 namespace ISeeU.Application.CommandHandlers;
 
-public class UnSubscribeCommandHandler(CommandHandler next): CommandHandler(next)
+public class UnsubscribeHandler(CommandHandler next): CommandHandler(next)
 {
     private CommandHandler _next = next;
 

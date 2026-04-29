@@ -3,7 +3,7 @@ using ISeeU.Application.Services;
 
 namespace ISeeU.Application.CommandHandlers;
 
-public class SubscribeCommandHandler(CommandHandler next) : CommandHandler(next)
+public class NotifyHandler(CommandHandler next) : CommandHandler(next)
 {
     protected override bool CanHandle(string command)
     {
