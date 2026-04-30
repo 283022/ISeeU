@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service", "Service\Service.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectInfo", "ConnectInfo\ConnectInfo.csproj", "{55924E8F-C8EB-4EC6-8DDB-92B2925C2F50}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISeeU.Infrastructure.Serialization", "ISeeU.Infrastructure.Serialization\ISeeU.Infrastructure.Serialization.csproj", "{ED97B1E6-1F39-462C-8348-1720CE120F11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,7 @@ Global
 		{AC413436-1119-451E-B8AA-AD0732B3C1C5} = {1D6267D1-5D7D-4894-B1BB-DAB4370F110C}
 		{354119D1-774A-4B3F-92E2-27DDDF4B9C15} = {04CFB5C8-9D6B-4CDD-859F-CFB85FFF6E8B}
 		{55924E8F-C8EB-4EC6-8DDB-92B2925C2F50} = {2CAD02B0-1591-4073-95B8-A90B2D0BA6FF}
+		{ED97B1E6-1F39-462C-8348-1720CE120F11} = {1D6267D1-5D7D-4894-B1BB-DAB4370F110C}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{810D0395-3659-4CD2-9A8A-BF1D4BD4CAE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -67,5 +70,9 @@ Global
 		{55924E8F-C8EB-4EC6-8DDB-92B2925C2F50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55924E8F-C8EB-4EC6-8DDB-92B2925C2F50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55924E8F-C8EB-4EC6-8DDB-92B2925C2F50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED97B1E6-1F39-462C-8348-1720CE120F11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED97B1E6-1F39-462C-8348-1720CE120F11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED97B1E6-1F39-462C-8348-1720CE120F11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED97B1E6-1F39-462C-8348-1720CE120F11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ConnectInfo\ConnectInfo.csproj" />
       <ProjectReference Include="..\ISeeU.Domain\ISeeU.Domain.csproj" />
     </ItemGroup>
 
