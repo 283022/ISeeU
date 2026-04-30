@@ -1,29 +1,31 @@
-﻿using ISeeU.Application.AbstractClasses;
+﻿using ConnectInfo;
+using ISeeU.Application.AbstractClasses;
+using ISeeU.Application.Contracts;
 using ISeeU.Application.Services;
+using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Application.CommandHandlers;
 
-public class UnsubscribeHandler(CommandHandler next): CommandHandler(next)
+public class UnsubscribeHandler(CommandHandler next, SurveillanceManager manager, IMessageConverter converter): CommandHandler(next, manager)
 {
     private CommandHandler _next = next;
-
+    private readonly IMessageConverter _converter = converter;
+    private readonly SurveillanceManager _manager = manager;
 
     protected override bool CanHandle(string command)
     {
         return string.Equals(command, "unsubscribe");
     }
 
-    public override void Handle(string message, SurveillanceManager manager)
+    public override void Handle(string message, string payload)
     {
-        if (CanHandle(message))
+        if (!CanHandle(message))
         {
-            //this is a PLUG
-            throw new NotImplementedException();
+            _next.Handle(message, payload);
+            return;
         }
-        else
-        {
-            _next.Handle(message, manager);
-        }
+        var info = _converter.Deserialize<ElementInfo>(payload);
+        _manager.UnSubscribe(info);
     }
 
 }
