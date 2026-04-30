@@ -10,13 +10,14 @@ public class WindowsElement(IUIAutomationElement nativeElement, CUIAutomation8 a
     public string Name => _nativeElement.CurrentName;
     public int ProcessId => _nativeElement.CurrentProcessId;
     public int ControlType => _nativeElement.CurrentControlType;
-    
+    public Rect BoundingRectangle { get; }
 
-    public string[] GetSupportedProperties()
+
+    public int[] GetSupportedProperties()
     { 
        automation8.PollForPotentialSupportedProperties(_nativeElement, out int[] propertyIds,
             out string[] supportedProperties);
-        return supportedProperties;
+        return propertyIds;
     }
     
     public IUIAutomationElement  GetNativeElement()
