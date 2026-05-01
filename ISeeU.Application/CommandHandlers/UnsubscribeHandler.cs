@@ -2,7 +2,6 @@
 using ISeeU.Application.AbstractClasses;
 using ISeeU.Application.Contracts;
 using ISeeU.Application.Services;
-using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Application.CommandHandlers;
 

@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using ISeeU.Domain.Interfaces;
+﻿using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Domain.Entities;
 

@@ -7,13 +7,4 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\ConnectInfo\ConnectInfo.csproj" />
-      <ProjectReference Include="..\ISeeU.Application\ISeeU.Application.csproj" />
-      <ProjectReference Include="..\ISeeU.Domain\ISeeU.Domain.csproj" />
-      <ProjectReference Include="..\ISeeU.Infrastructure.Dispatch\ISeeU.Infrastructure.Dispatch.csproj" />
-      <ProjectReference Include="..\ISeeU.Infrastructure.Transport\ISeeU.Infrastructure.Transport.csproj" />
-      <ProjectReference Include="..\ISeeU.Infrastructure.UIAutomation\ISeeU.Infrastructure.UIAutomation.csproj" />
-    </ItemGroup>
-
 </Project>

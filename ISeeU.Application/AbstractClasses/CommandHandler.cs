@@ -1,5 +1,4 @@
 ﻿
-using ConnectInfo;
 using ISeeU.Application.Services;
 
 namespace ISeeU.Application.AbstractClasses;

@@ -5,11 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
-    </ItemGroup>
-
+    
     <ItemGroup>
       <ProjectReference Include="..\ISeeU.Application\ISeeU.Application.csproj" />
     </ItemGroup>

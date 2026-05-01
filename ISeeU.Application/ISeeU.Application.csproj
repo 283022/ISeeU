@@ -7,10 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\ConnectInfo\ConnectInfo.csproj" />
       <ProjectReference Include="..\ISeeU.Domain\ISeeU.Domain.csproj" />
     </ItemGroup>
