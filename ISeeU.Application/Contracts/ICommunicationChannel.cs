@@ -2,6 +2,7 @@
 
 public interface ICommunicationChannel
 {
-    void StartListening(Action<string> onMessageReceived);
+    void StartListening(Func<string,string> onMessageReceived);
     void StopListening();
+    void Send(string message);
 }

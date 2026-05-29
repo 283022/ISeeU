@@ -16,15 +16,21 @@ public class UnsubscribeHandler(CommandHandler next, SurveillanceManager manager
         return string.Equals(command, "unsubscribe");
     }
 
-    public override void Handle(string message, string payload)
+    public override string Handle(string message, string payload)
     {
         if (!CanHandle(message))
         {
-            _next.Handle(message, payload);
-            return;
+            if (_next == null)
+            {
+                return "error| ";
+            }
+            Console.WriteLine("22");
+             var messageReturn = _next.Handle(message, payload);
+             return messageReturn;
         }
         var info = _converter.Deserialize<ElementInfo>(payload);
         _manager.UnSubscribe(info);
+        return "unsubscribed|" + info.Name;
     }
 
 }
