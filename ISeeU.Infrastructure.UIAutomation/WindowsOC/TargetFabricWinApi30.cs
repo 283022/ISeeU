@@ -4,11 +4,18 @@ using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
-public class TargetFabricWinApi30(CUIAutomation8 automation): ITargetFabric
+public class TargetFabricWinApi30(IUIAutomation2 automation2) : ITargetFabric
 {
-    public ITargetObserver CreateTargetObserver(int propertyId, Action<int, object> onPropertyChanged)
+    private readonly HashSet<int> _pollingRequired = new() { 30045, 30041 }; // Value, ToggleState
+    private readonly IUIAutomation2 _automation = automation2;
+    
+    public ITargetObserver CreateTargetObserver(IElement element, int propertyId, Action<int, object> onPropertyChanged)
     {
+        var nativeElement = ((WindowsElement)element).GetNativeElement();
         
-        return new TargetObserverWinApi30(propertyId, onPropertyChanged,automation);
+        if (_pollingRequired.Contains(propertyId))
+            return new PollingObserver(nativeElement, propertyId, onPropertyChanged);
+        
+        return new TargetObserverWinApi30(element, propertyId, onPropertyChanged, _automation);
     }
 }

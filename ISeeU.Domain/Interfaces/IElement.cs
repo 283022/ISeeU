@@ -7,6 +7,7 @@ public interface IElement
     int ControlType { get; }
     Rect BoundingRectangle { get; }
     int[] GetSupportedProperties();
+    string[] GetSupportedPropertiesForHuman();
 }
 
 //struct Rect need for Painting Element on a board

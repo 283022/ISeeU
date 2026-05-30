@@ -4,5 +4,5 @@ namespace ISeeU.Application.Contracts;
 
 public interface ITargetFabric
 {
-    public ITargetObserver CreateTargetObserver(int propertyId, Action<int, object> onPropertyChanged);
+    public ITargetObserver CreateTargetObserver(IElement element,int propertyId, Action<int, object> onPropertyChanged);
 }

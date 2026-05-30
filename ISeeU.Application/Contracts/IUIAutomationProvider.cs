@@ -12,7 +12,7 @@ public interface IUIAutomationProvider
     void UnsubscribeFromFocusChange(IUIAutomationFocusChangedEventHandler handler);
     */
     
-    public string[] GetSupportedProperties(IElement element);
+    public Dictionary<int, string>  GetSupportedProperties(IElement element);
 
     public bool ElementIsAlive(IElement element);
 }

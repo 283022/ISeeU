@@ -42,10 +42,14 @@ public class SubscribeHandler(
             
             var element = mapper.ToDomain(info);
 
+            Console.WriteLine(element);
+            
             foreach (var prop in info.Properties)
             {
+                Console.WriteLine(prop.Name);
                 _manager.Add(element, prop.Id, (id, value) =>
                 {
+                    Console.WriteLine("ВСЕ ИЗМЕНИЛОСЬ");
                     // Отправляем уведомление об изменении через канал связи
                     var notification = $"changed|{info.Name}|{id}|{value}";
                     communicationChannel.Send(notification);
@@ -56,6 +60,7 @@ public class SubscribeHandler(
         }
         catch (Exception ex)
         {
+            Console.WriteLine(ex.Message);
             return $"subscribe|error-{ex.Message}";
         }
     }

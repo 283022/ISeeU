@@ -11,25 +11,27 @@ public class TargetObserverWinApi30 : ITargetObserver
     private readonly IUIAutomation2 _automation;
     private IUIAutomationElement _element;
     private PropertyChangeHandler _comHandler; // отдельный класс для COM
+    private IElement _ielement;
 
-    public TargetObserverWinApi30(int propertyId, Action<int, object> callback, IUIAutomation2 automation)
+    public TargetObserverWinApi30(IElement element,int propertyId, Action<int, object> callback, IUIAutomation2 automation)
     {
         _propertyId = propertyId;
         _callback = callback;
         _automation = automation;
         _comHandler = new PropertyChangeHandler(propertyId, callback);
+        _ielement = element;
     }
 
-    public void Start(IElement element)
+    public void Start()
     {
-        var winElement = (WindowsElement)element;
+        var winElement = (WindowsElement)_ielement;
         _element = winElement.GetNativeElement();
         
         // Подписываем обработчик
         _automation.AddPropertyChangedEventHandler(
             _element, TreeScope.TreeScope_Element, null,_comHandler, [_propertyId]);
     }
-    
+
 
     public void Stop()
     {

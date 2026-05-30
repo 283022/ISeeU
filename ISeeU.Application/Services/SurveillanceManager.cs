@@ -15,7 +15,7 @@ public class SurveillanceManager(IUIAutomationProvider provider, ITargetFabric t
     public void Add(IElement element, int propertyId, Action<int, object> callback)
     {
         var targetInfo = new TargetInfo(element);
-        var observer = _targetFabric.CreateTargetObserver(propertyId, callback);
+        var observer = _targetFabric.CreateTargetObserver(element,propertyId, callback);
 
         var rule = new SurveillanceRule(
             propertyId,
@@ -24,6 +24,10 @@ public class SurveillanceManager(IUIAutomationProvider provider, ITargetFabric t
             observer
         );
         
+        
+        Console.WriteLine($"ХУЙХУЙХУЙХУХЙУЙХУЙХУХУХЙ{observer}");
+        Console.WriteLine($"{rule} - csfsfs");
+        observer.Start();
         Subscribe(rule);
     }
 
@@ -54,11 +58,12 @@ public class SurveillanceManager(IUIAutomationProvider provider, ITargetFabric t
         _flag = false;
     }
 
+    
     private void RemoveDeadRules()
     {
         lock (_surveillanceRules)
         {
-            _surveillanceRules.RemoveAll(r => provider.ElementIsAlive(r.Target.Element));
+            _surveillanceRules.RemoveAll(r => !provider.ElementIsAlive(r.Target.Element));
         }
     }
 }

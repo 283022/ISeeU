@@ -2,6 +2,6 @@
 
 public interface ITargetObserver
 {
-    void Start(IElement element);
+    void Start();
     void Stop();
 }

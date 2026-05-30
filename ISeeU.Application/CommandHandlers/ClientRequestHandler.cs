@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using ConnectInfo;
 using ISeeU.Application.Contracts;
@@ -26,7 +27,7 @@ public class ClientRequestHandler(
             {
                 return "error| ";
             }
-            Console.WriteLine("22");
+            
             var messageReturn = _next.Handle(message, payload);
             return messageReturn;
         }
@@ -45,7 +46,7 @@ public class ClientRequestHandler(
             
             // Находим элемент по координатам
             var element = provider.FindElement(point);
-
+            
             // Возвращаем DTO с информацией об элементе
             var elementInfo = new ElementInfo
             {
