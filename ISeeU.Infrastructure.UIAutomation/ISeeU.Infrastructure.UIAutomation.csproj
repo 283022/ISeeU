@@ -11,6 +11,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <InternalsVisibleTo Include="ISeeU.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\ISeeU.Application\ISeeU.Application.csproj" />
     </ItemGroup>
 

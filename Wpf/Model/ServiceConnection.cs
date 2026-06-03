@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using ISeeU.Application.Contracts;
 using StreamJsonRpc;
@@ -6,6 +7,8 @@ namespace Wpf;
 
 // Тонкий клиент поверх StreamJsonRpc. Заменяет старый Connection с ручными
 // read/write-петлями, очередью и парсингом "command|payload".
+// Транспорт (named pipe + RPC) — интеграционная часть, юнит-тестами не покрывается.
+[ExcludeFromCodeCoverage]
 public class ServiceConnection(ISurveillanceClient callback) : IDisposable
 {
     private NamedPipeClientStream? _pipe;

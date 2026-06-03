@@ -1,8 +1,11 @@
-﻿using Interop.UIAutomationClient;
+﻿using System.Diagnostics.CodeAnalysis;
+using Interop.UIAutomationClient;
 using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
+// Обёртка над нативным IUIAutomationElement (COM). Не покрывается юнит-тестами.
+[ExcludeFromCodeCoverage]
 public class WindowsElement : IElement
 {
     private IUIAutomationElement _nativeElement;
@@ -34,14 +37,7 @@ public class WindowsElement : IElement
 
     public int[] GetSupportedProperties()
     {
-        _automation8.PollForPotentialSupportedProperties(_nativeElement, out int[] propertyIds,
-            out string[] supportedProperties);
-
-        for (var i = 0; i < propertyIds.Length; i++)
-        {
-            Console.WriteLine($"{propertyIds[i]},  {supportedProperties[i]}");
-        }
-
+        _automation8.PollForPotentialSupportedProperties(_nativeElement, out int[] propertyIds, out _);
         return propertyIds;
     }
 

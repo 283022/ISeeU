@@ -1,10 +1,13 @@
-﻿using ISeeU.Application.Convertor;
+﻿using System.Diagnostics.CodeAnalysis;
+using ISeeU.Application.Convertor;
 using ISeeU.Application.Services;
 using ISeeU.Infrastructure.Transport;
 using ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
 namespace Service;
 
+// Composition root + хост named-pipe сервера. Не покрывается юнит-тестами.
+[ExcludeFromCodeCoverage]
 public class Program
 {
     [STAThread]

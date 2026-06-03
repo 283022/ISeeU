@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using ISeeU.Application.Contracts;
 using ISeeU.Application.Services;
@@ -11,6 +12,7 @@ namespace ISeeU.Infrastructure.Transport;
 //  - получаем прокси клиента (через него сервис шлёт push).
 // ВАЖНО: pipe здесь БАЙТОВЫЙ (PipeTransmissionMode.Byte) — границы сообщений
 // режет сам StreamJsonRpc (Content-Length заголовки), message-mode больше не нужен.
+[ExcludeFromCodeCoverage]
 public class JsonRpcPipeServer(string pipeName, SurveillanceService service)
 {
     public async Task RunAsync(CancellationToken token)

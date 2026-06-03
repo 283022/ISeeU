@@ -1,7 +1,9 @@
-﻿using System.Windows;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Windows;
 using Wpf;
 using Application = System.Windows.Application;
 
+[ExcludeFromCodeCoverage]
 public class App : Application
 {
     readonly MainWindow mainWindow;
