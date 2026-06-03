@@ -9,5 +9,9 @@
     <ItemGroup>
       <ProjectReference Include="..\ISeeU.Application\ISeeU.Application.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="StreamJsonRpc" Version="2.24.92" />
+    </ItemGroup>
 
 </Project>

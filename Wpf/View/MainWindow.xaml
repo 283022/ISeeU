@@ -94,31 +94,67 @@
                 </Button>
             </StackPanel>
         </Grid>        
-        <!-- Список элементов -->
-        <Border Grid.Row="3" Background="White" CornerRadius="5" Padding="5"
-                BorderBrush="#E0E0E0" BorderThickness="1">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                
-                <TextBlock Grid.Row="0" Text="Monitored Elements" FontWeight="Bold" Margin="5"/>
-                
-                <ListBox x:Name="ElementsList" Grid.Row="1" BorderThickness="0">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Border Padding="5">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
-                                    <TextBlock Text="{Binding ElementId}" FontSize="10" Foreground="Gray"/>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </Grid>
-        </Border>
+        <!-- Список элементов + выбор свойств -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="240"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Отслеживаемые элементы -->
+            <Border Grid.Column="0" Background="White" CornerRadius="5" Padding="5" Margin="0,0,10,0"
+                    BorderBrush="#E0E0E0" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Monitored Elements" FontWeight="Bold" Margin="5"/>
+
+                    <ListBox x:Name="ElementsList" Grid.Row="1" BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="5">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding ElementId}" FontSize="10" Foreground="Gray"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <!-- Выбор свойств для выбранного элемента -->
+            <Border Grid.Column="1" Background="White" CornerRadius="5" Padding="5"
+                    BorderBrush="#E0E0E0" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Properties to monitor" FontWeight="Bold" Margin="5"/>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="PropertiesList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" Margin="5,3">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding DisplayName}"/>
+                                            <TextBlock Text="{Binding KindLabel}" Foreground="Gray" FontSize="10" Margin="6,0,0,0"/>
+                                        </StackPanel>
+                                    </CheckBox>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
         
         <!-- Уведомления -->
         <Border Grid.Row="4" Background="White" CornerRadius="5" Padding="5" Margin="0,10,0,0"

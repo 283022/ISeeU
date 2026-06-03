@@ -9,6 +9,7 @@ namespace ISeeU.Application.Services;
 public class SurveillanceManager(IUIAutomationProvider provider, ITargetFabric targetFabric)
 {
     private bool _flag = false;
+    private readonly object _sync = new();
     private readonly List<SurveillanceRule> _surveillanceRules = new();
     private readonly ITargetFabric _targetFabric = targetFabric;
 
@@ -25,25 +26,41 @@ public class SurveillanceManager(IUIAutomationProvider provider, ITargetFabric t
         );
         
         
-        Console.WriteLine($"ХУЙХУЙХУЙХУХЙУЙХУЙХУХУХЙ{observer}");
-        Console.WriteLine($"{rule} - csfsfs");
         observer.Start();
         Subscribe(rule);
     }
 
     private void Subscribe(SurveillanceRule surveillanceRule)
     {
-        _surveillanceRules.Add(surveillanceRule);
+        lock (_sync)
+            _surveillanceRules.Add(surveillanceRule);
     }
 
     public void UnSubscribe(ElementInfo elementInfo)
     {
-        
-        var delete = provider.FindElement(new Point(elementInfo.X, elementInfo.Y));
-        var toRemove = _surveillanceRules.Where(rule => rule.Target._element.ProcessId != delete.ProcessId).ToList();
-        foreach (var rule in toRemove)
-            _surveillanceRules.Remove(rule);
-        
+        var target = provider.FindElement(new Point(elementInfo.X, elementInfo.Y));
+
+        lock (_sync)
+        {
+            // Раньше здесь было "!=", из-за чего удалялись ВСЕ правила, кроме нужного.
+            var toRemove = _surveillanceRules
+                .Where(rule => IsSameElement(rule.Target.Element, target))
+                .ToList();
+
+            foreach (var rule in toRemove)
+            {
+                rule._targetObserver.Stop(); // обязательно гасим наблюдатель, иначе утечка
+                _surveillanceRules.Remove(rule);
+            }
+        }
+    }
+
+    private static bool IsSameElement(IElement a, IElement b)
+    {
+        return a.ProcessId == b.ProcessId
+               && a.Name == b.Name
+               && a.BoundingRectangle.X == b.BoundingRectangle.X
+               && a.BoundingRectangle.Y == b.BoundingRectangle.Y;
     }
 
     public async Task CheckAllElementIsAlive(CancellationToken token)
@@ -61,9 +78,17 @@ public class SurveillanceManager(IUIAutomationProvider provider, ITargetFabric t
     
     private void RemoveDeadRules()
     {
-        lock (_surveillanceRules)
+        lock (_sync)
         {
-            _surveillanceRules.RemoveAll(r => !provider.ElementIsAlive(r.Target.Element));
+            var dead = _surveillanceRules
+                .Where(r => !provider.ElementIsAlive(r.Target.Element))
+                .ToList();
+
+            foreach (var rule in dead)
+            {
+                rule._targetObserver.Stop();
+                _surveillanceRules.Remove(rule);
+            }
         }
     }
 }

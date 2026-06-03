@@ -1,35 +1,40 @@
-﻿using System.Text.Json;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using ConnectInfo;
+using ISeeU.Application.Contracts;
 
 namespace Wpf;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Window, ISurveillanceClient
 {
-    private List<MonitoredElement> _monitoredElements = new();
+    private readonly List<MonitoredElement> _monitoredElements = new();
     private ElementInfo? _currentElement;
-    private Connection _connection;
 
-    // Основные свойства для отслеживания (пользователю нужны только эти)
-    private static readonly List<PropertyInfo> ImportantProperties = new()
-    {
-        new PropertyInfo { Id = 30005, Name = "Name" },
-        new PropertyInfo { Id = 30010, Name = "IsEnabled" },
-        new PropertyInfo { Id = 30022, Name = "IsOffscreen" },
-        new PropertyInfo { Id = 30045, Name = "Value" },      // ValuePattern
-        new PropertyInfo { Id = 30041, Name = "ToggleState" } // TogglePattern
-    };
+    // Чекбоксы свойств выбранного элемента (источник для PropertiesList).
+    private readonly ObservableCollection<PropertyChoice> _propertyChoices = new();
+
+    private readonly ServiceConnection _connection;
 
     public MainWindow()
     {
         InitializeComponent();
-        _connection = new Connection(ProcessMessageHandler);
+        PropertiesList.ItemsSource = _propertyChoices;
+        _connection = new ServiceConnection(this);
         Loaded += MainWindow_Loaded;
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        _ = _connection.ConnectToServiceAsync();
+        try
+        {
+            await _connection.ConnectAsync();
+            StatusText.Text = "Connected";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Disconnected";
+            AddNotification($"Connection failed: {ex.Message}");
+        }
     }
 
     #region ClickLogic
@@ -37,32 +42,60 @@ public partial class MainWindow : Window
     private void PickElementBtn_Click(object sender, RoutedEventArgs e)
     {
         var picker = new ElementPickerWindow();
-    
-        picker.ElementSelected += (s, point) =>
+
+        picker.ElementSelected += async (s, point) =>
         {
-            var message = $"request|{point.X},{point.Y}";
-            _connection.Send(message);
-        
-            Dispatcher.Invoke(() =>
+            try
             {
-                AddNotification($"Position selected: ({point.X}, {point.Y})");
-                this.Activate();
-            });
+                if (_connection.Service == null)
+                {
+                    AddNotification("Not connected to service");
+                    return;
+                }
+
+                // Прямой RPC-вызов вместо "request|x,y" + ожидания ответа по префиксу.
+                var element = await _connection.Service.FindElementAsync((int)point.X, (int)point.Y);
+                _currentElement = element;
+                AddNotification($"Selected: {(string.IsNullOrEmpty(element.Name) ? "(no name)" : element.Name)} at ({point.X}, {point.Y})");
+
+                // Узнаём, какие свойства поддерживает элемент. По сети едет только int[],
+                // человекочитаемые имена берём локально из каталога.
+                var supportedIds = await _connection.Service.GetSupportedPropertiesAsync(element);
+                var supported = UiaPropertyCatalog.Resolve(supportedIds);
+
+                _propertyChoices.Clear();
+                foreach (var p in supported)
+                    _propertyChoices.Add(new PropertyChoice
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        DisplayName = p.DisplayName,
+                        Kind = p.Kind.ToString(),
+                        IsSelected = true
+                    });
+
+                AddNotification(supported.Count > 0
+                    ? $"Supported: {string.Join(", ", supported.Select(p => p.DisplayName))}"
+                    : "No monitorable properties found");
+
+                Activate();
+            }
+            catch (Exception ex)
+            {
+                AddNotification($"Find error: {ex.Message}");
+            }
         };
-    
+
         picker.SelectionCancelled += (s, args) =>
         {
-            Dispatcher.Invoke(() =>
-            {
-                AddNotification("Selection cancelled");
-                this.Activate();
-            });
+            AddNotification("Selection cancelled");
+            Activate();
         };
-    
+
         picker.ShowDialog();
     }
 
-    private void SubscribeBtn_Click(object sender, RoutedEventArgs e)
+    private async void SubscribeBtn_Click(object sender, RoutedEventArgs e)
     {
         if (_currentElement == null)
         {
@@ -70,7 +103,24 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Подписываемся на все важные свойства сразу
+        if (_connection.Service == null)
+        {
+            AddNotification("Not connected to service");
+            return;
+        }
+
+        // Подписываемся только на ОТМЕЧЕННЫЕ свойства.
+        var chosen = _propertyChoices
+            .Where(c => c.IsSelected)
+            .Select(c => new PropertyInfo { Id = c.Id, Name = c.Name })
+            .ToList();
+
+        if (chosen.Count == 0)
+        {
+            AddNotification("Select at least one property to monitor");
+            return;
+        }
+
         var elementToSubscribe = new ElementInfo
         {
             ElementId = _currentElement.ElementId ?? Guid.NewGuid().ToString(),
@@ -79,141 +129,107 @@ public partial class MainWindow : Window
             Y = _currentElement.Y,
             Width = _currentElement.Width,
             Height = _currentElement.Height,
-            Properties = ImportantProperties  // ← Все важные свойства
+            Properties = chosen
         };
 
-        var message = $"subscribe|{JsonSerializer.Serialize(elementToSubscribe)}";
-        _connection.Send(message);
-
-        var newElement = new MonitoredElement
+        try
         {
-            ElementInfo = elementToSubscribe,
-            SubscribedProperties = new HashSet<int>(ImportantProperties.Select(p => p.Id))
-        };
-        
-        _monitoredElements.Add(newElement);
-        ElementsList.Items.Add(newElement);
-        
-        AddNotification($"Monitoring {_currentElement.Name} (Name, IsEnabled, Value, ToggleState)");
+            await _connection.Service.SubscribeAsync(elementToSubscribe);
+
+            var newElement = new MonitoredElement
+            {
+                ElementInfo = elementToSubscribe,
+                SubscribedProperties = new HashSet<int>(chosen.Select(p => p.Id))
+            };
+
+            _monitoredElements.Add(newElement);
+            ElementsList.Items.Add(newElement);
+            UpdateCount();
+
+            AddNotification($"Monitoring {_currentElement.Name} ({string.Join(", ", chosen.Select(p => p.Name))})");
+        }
+        catch (Exception ex)
+        {
+            AddNotification($"Subscribe error: {ex.Message}");
+        }
     }
 
-    private void UnsubscribeClick(object sender, RoutedEventArgs e)
+    private async void UnsubscribeClick(object sender, RoutedEventArgs e)
     {
-        var selected = ElementsList.SelectedItem as MonitoredElement;
-        
-        if (selected == null)
+        if (ElementsList.SelectedItem is not MonitoredElement selected)
         {
             AddNotification("No element selected");
             return;
         }
-        
-        if (selected.ElementInfo != null)
+
+        try
         {
-            var message = $"unsubscribe|{JsonSerializer.Serialize(selected.ElementInfo)}";
-            _connection.Send(message);
+            if (selected.ElementInfo != null && _connection.Service != null)
+                await _connection.Service.UnsubscribeAsync(selected.ElementInfo);
         }
-        
+        catch (Exception ex)
+        {
+            AddNotification($"Unsubscribe error: {ex.Message}");
+        }
+
         ElementsList.Items.Remove(selected);
         _monitoredElements.Remove(selected);
-        
+        UpdateCount();
         AddNotification($"Stopped monitoring: {selected.Name}");
     }
 
-    private void ClearAllBtn_Click(object sender, RoutedEventArgs e)
+    private async void ClearAllBtn_Click(object sender, RoutedEventArgs e)
     {
         foreach (var element in _monitoredElements)
         {
-            if (element.ElementInfo == null) continue;
-            var message = $"unsubscribe|{JsonSerializer.Serialize(element.ElementInfo)}";
-            _connection.Send(message);
+            if (element.ElementInfo == null || _connection.Service == null) continue;
+            try { await _connection.Service.UnsubscribeAsync(element.ElementInfo); }
+            catch (Exception ex) { AddNotification($"Unsubscribe error: {ex.Message}"); }
         }
 
         _monitoredElements.Clear();
         _currentElement = null;
         ElementsList.Items.Clear();
-        
+        _propertyChoices.Clear();
+        UpdateCount();
         AddNotification("All monitoring stopped");
     }
 
+    private void UpdateCount() => ElementCountText.Text = $"Elements: {_monitoredElements.Count}";
+
     #endregion
 
-    #region ProcessMessage
+    #region ISurveillanceClient (push from service)
 
-    private string[] MessageParser(string message)
+    // Вызывается сервером через RPC. Выполняется НЕ на UI-потоке -> маршалим в Dispatcher.
+    public void OnElementPropertyChanged(string elementName, string propertyName, string value)
     {
-        var parts = message.Split('|');
-        return parts.Length < 2 ? [] : parts;
-    }
-
-    private void ProcessMessageHandler(string message)
-    {
-        var parts = MessageParser(message);
-        if (parts.Length < 2) return;
-
-        switch (parts[0])
+        var displayValue = propertyName switch
         {
-            case "connected":
-                Dispatcher.Invoke(() => StatusText.Text = "Connected");
-                break;
+            "IsEnabled" => value == "True" ? "доступен" : "недоступен",
+            "IsOffscreen" => value == "True" ? "скрыт" : "видим",
+            "ToggleState" => value switch
+            {
+                "1" => "включен",
+                "0" => "выключен",
+                _ => "неопределен"
+            },
+            _ => value
+        };
 
-            case "elementinfo":
-                try
-                {
-                    var element = JsonSerializer.Deserialize<ElementInfo>(parts[1]);
-                    if (element != null)
-                    {
-                        _currentElement = element;
-                        AddNotification($"Selected: {element.Name}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[CLIENT] Parse error: {ex.Message}");
-                }
-                break;
+        var messageText = propertyName switch
+        {
+            "IsEnabled" => $"{elementName} стал {displayValue}",
+            "IsOffscreen" => $"{elementName} {displayValue}",
+            "ToggleState" => $"{elementName} {displayValue}",
+            "Value" => $"Значение {elementName}: {value}",
+            _ => $"{elementName}: {propertyName} = {value}"
+        };
 
-            case "subscribed":
-                AddNotification("Monitoring started");
-                break;
-
-            case "unsubscribed":
-                AddNotification("Monitoring stopped");
-                break;
-
-            case "changed":
-                // parts[1] = element name
-                // parts[2] = property name (уже читаемое, т.к. сервер присылает имя)
-                // parts[3] = new value
-                var propertyName = parts[2];
-                var value = parts[3];
-                
-                // Человеко-понятный вывод
-                var displayValue = propertyName switch
-                {
-                    "IsEnabled" => value == "True" ? "доступен" : "недоступен",
-                    "IsOffscreen" => value == "True" ? "скрыт" : "видим",
-                    "ToggleState" => value switch
-                    {
-                        "1" => "включен",
-                        "0" => "выключен",
-                        _ => "неопределен"
-                    },
-                    _ => value
-                };
-                
-                var messageText = propertyName switch
-                {
-                    "IsEnabled" => $"{parts[1]} стал {displayValue}",
-                    "IsOffscreen" => $"{parts[1]} {displayValue}",
-                    "ToggleState" => $"{parts[1]} {displayValue}",
-                    "Value" => $"Значение {parts[1]}: {value}",
-                    _ => $"{parts[1]}: {propertyName} = {value}"
-                };
-                
-                AddNotification(messageText);
-                break;
-        }
+        AddNotification(messageText);
     }
+
+    #endregion
 
     private void AddNotification(string message)
     {
@@ -221,17 +237,15 @@ public partial class MainWindow : Window
         {
             StatusText.Text = message;
             NotificationsList.Items.Insert(0, $"[{DateTime.Now:HH:mm:ss}] {message}");
-            
+
             while (NotificationsList.Items.Count > 50)
                 NotificationsList.Items.RemoveAt(NotificationsList.Items.Count - 1);
         });
     }
 
-    #endregion
-
     protected override void OnClosed(EventArgs e)
     {
-        _connection.OnClosed();
+        _connection.Dispose();
         base.OnClosed(e);
     }
 }
@@ -243,9 +257,13 @@ public class MonitoredElement
     public string Name => ElementInfo?.Name ?? "";
 }
 
-public class PropertyItem
+// Пункт списка чекбоксов: одно свойство + флаг "следить".
+public class PropertyChoice
 {
     public int Id { get; set; }
-    public string Name { get; set; } = "";
-    public bool IsSubscribed { get; set; }
+    public string Name { get; set; } = "";        // имя в протоколе ("Value")
+    public string DisplayName { get; set; } = "";  // имя для UI
+    public string Kind { get; set; } = "";
+    public bool IsSelected { get; set; } = true;
+    public string KindLabel => $"· {Kind}";
 }

@@ -12,7 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ISeeU.Infrastructure.Serialization\ISeeU.Infrastructure.Serialization.csproj" />
       <ProjectReference Include="..\ISeeU.Infrastructure.Transport\ISeeU.Infrastructure.Transport.csproj" />
       <ProjectReference Include="..\ISeeU.Infrastructure.UIAutomation\ISeeU.Infrastructure.UIAutomation.csproj" />
     </ItemGroup>

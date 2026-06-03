@@ -25,9 +25,12 @@ public class UIAutomationServiceWindows : IUIAutomationProvider
     
     public Dictionary<int, string> GetSupportedProperties(IElement element)
     {
-        if (element is not IUIAutomationElement uiElement) 
+        // WindowsElement не реализует IUIAutomationElement, а оборачивает его,
+        // поэтому каст к IUIAutomationElement раньше падал всегда.
+        if (element is not WindowsElement winElement)
             throw new NotSupportedException("Unsupported element type");
-    
+
+        var uiElement = winElement.GetNativeElement();
         _automation.PollForPotentialSupportedProperties(uiElement, out int[] propertyIds,
             out string[] supportedProperties);
     
@@ -40,13 +43,31 @@ public class UIAutomationServiceWindows : IUIAutomationProvider
         return result;
     }
 
+    public object GetCurrentPropertyValue(IElement element, int propertyId)
+    {
+        if (element is not WindowsElement winElement)
+            throw new NotSupportedException("Unsupported element type");
+
+        return winElement.GetNativeElement().GetCurrentPropertyValue(propertyId);
+    }
+
     public bool ElementIsAlive(IElement element)
     {
-        //checking if the element is dead 
-        if (element is not WindowsElement winElement) throw new  NotSupportedException("Unsupported element type");
-        //try to give him nint; if element is dead - handle = 0, else - handle!=0
-        var handle = winElement.GetNativeElement().CurrentNativeWindowHandle;
-        return handle != IntPtr.Zero;
+        if (element is not WindowsElement winElement) throw new NotSupportedException("Unsupported element type");
+
+        // Старый вариант проверял CurrentNativeWindowHandle != 0, но у большинства
+        // контролов (кнопки, текст, чекбоксы) нативного окна нет -> handle == 0,
+        // и все правила считались "мёртвыми" уже через секунду.
+        // Корректно: обратиться к свойству; у мёртвого элемента COM кинет ElementNotAvailable.
+        try
+        {
+            _ = winElement.GetNativeElement().CurrentProcessId;
+            return true;
+        }
+        catch (COMException)
+        {
+            return false;
+        }
     }
 
 
