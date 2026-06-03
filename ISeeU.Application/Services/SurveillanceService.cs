@@ -4,7 +4,7 @@ using ISeeU.Application.Contracts;
 
 namespace ISeeU.Application.Services;
 
-// Реализация сервисного контракта. Это "точка входа" для всех вызовов от клиента.
+// Реализация сервисного контракта. Это точка входа для всех вызовов от клиента.
 // Раньше эту роль играла цепочка CommandHandler'ов поверх строкового протокола.
 public class SurveillanceService(
     SurveillanceManager manager,
@@ -12,14 +12,14 @@ public class SurveillanceService(
     IUIAutomationProvider provider) : ISurveillanceService
 {
     // Прокси клиента, через который шлём push-уведомления.
-    // Устанавливается транспортом на каждое подключение (и сбрасывается при дисконнекте).
+    // Устанавливается транспортом на каждое подключение
     public ISurveillanceClient? Client { get; set; }
 
     public Task<ElementInfo> FindElementAsync(int x, int y)
     {
         var element = provider.FindElement(new Point(x, y));
 
-        // X/Y = исходная кликнутая точка (а не угол bounding-rect),
+        // X/Y = исходная кликнутая точка ,
         // чтобы Subscribe нашёл ровно тот же элемент.
         var info = new ElementInfo
         {

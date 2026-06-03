@@ -1,10 +1,15 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using ConnectInfo;
 using ISeeU.Application.Contracts;
 
 namespace Wpf;
 
+// Code-behind WPF-окна: завязан на Window/Dispatcher/RPC-подключение.
+// Юнит-тестами не покрывается; вся чистая логика вынесена в
+// NotificationFormatter и SubscriptionBuilder (они и тестируются).
+[ExcludeFromCodeCoverage]
 public partial class MainWindow : Window, ISurveillanceClient
 {
     private readonly List<MonitoredElement> _monitoredElements = new();
@@ -65,14 +70,7 @@ public partial class MainWindow : Window, ISurveillanceClient
 
                 _propertyChoices.Clear();
                 foreach (var p in supported)
-                    _propertyChoices.Add(new PropertyChoice
-                    {
-                        Id = p.Id,
-                        Name = p.Name,
-                        DisplayName = p.DisplayName,
-                        Kind = p.Kind.ToString(),
-                        IsSelected = true
-                    });
+                    _propertyChoices.Add(SubscriptionBuilder.ToChoice(p));
 
                 AddNotification(supported.Count > 0
                     ? $"Supported: {string.Join(", ", supported.Select(p => p.DisplayName))}"
@@ -110,10 +108,7 @@ public partial class MainWindow : Window, ISurveillanceClient
         }
 
         // Подписываемся только на ОТМЕЧЕННЫЕ свойства.
-        var chosen = _propertyChoices
-            .Where(c => c.IsSelected)
-            .Select(c => new PropertyInfo { Id = c.Id, Name = c.Name })
-            .ToList();
+        var chosen = SubscriptionBuilder.SelectedProperties(_propertyChoices);
 
         if (chosen.Count == 0)
         {
@@ -121,16 +116,7 @@ public partial class MainWindow : Window, ISurveillanceClient
             return;
         }
 
-        var elementToSubscribe = new ElementInfo
-        {
-            ElementId = _currentElement.ElementId ?? Guid.NewGuid().ToString(),
-            Name = _currentElement.Name,
-            X = _currentElement.X,
-            Y = _currentElement.Y,
-            Width = _currentElement.Width,
-            Height = _currentElement.Height,
-            Properties = chosen
-        };
+        var elementToSubscribe = SubscriptionBuilder.Build(_currentElement, chosen);
 
         try
         {
@@ -204,29 +190,7 @@ public partial class MainWindow : Window, ISurveillanceClient
     // Вызывается сервером через RPC. Выполняется НЕ на UI-потоке -> маршалим в Dispatcher.
     public void OnElementPropertyChanged(string elementName, string propertyName, string value)
     {
-        var displayValue = propertyName switch
-        {
-            "IsEnabled" => value == "True" ? "доступен" : "недоступен",
-            "IsOffscreen" => value == "True" ? "скрыт" : "видим",
-            "ToggleState" => value switch
-            {
-                "1" => "включен",
-                "0" => "выключен",
-                _ => "неопределен"
-            },
-            _ => value
-        };
-
-        var messageText = propertyName switch
-        {
-            "IsEnabled" => $"{elementName} стал {displayValue}",
-            "IsOffscreen" => $"{elementName} {displayValue}",
-            "ToggleState" => $"{elementName} {displayValue}",
-            "Value" => $"Значение {elementName}: {value}",
-            _ => $"{elementName}: {propertyName} = {value}"
-        };
-
-        AddNotification(messageText);
+        AddNotification(NotificationFormatter.Format(elementName, propertyName, value));
     }
 
     #endregion

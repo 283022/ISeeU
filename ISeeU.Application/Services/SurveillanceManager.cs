@@ -49,7 +49,7 @@ public class SurveillanceManager(IUIAutomationProvider provider, ITargetFabric t
 
             foreach (var rule in toRemove)
             {
-                rule._targetObserver.Stop(); // обязательно гасим наблюдатель, иначе утечка
+                rule.Observer.Stop(); // обязательно гасим наблюдатель, иначе утечка
                 _surveillanceRules.Remove(rule);
             }
         }
@@ -86,7 +86,7 @@ public class SurveillanceManager(IUIAutomationProvider provider, ITargetFabric t
 
             foreach (var rule in dead)
             {
-                rule._targetObserver.Stop();
+                rule.Observer.Stop();
                 _surveillanceRules.Remove(rule);
             }
         }

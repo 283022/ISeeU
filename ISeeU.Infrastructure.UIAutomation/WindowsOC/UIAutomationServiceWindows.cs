@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using Interop.UIAutomationClient;
 using ISeeU.Application.Contracts;
@@ -6,6 +7,9 @@ using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
+// Прямая работа с COM-объектом CUIAutomation8 — юнит-тестами не покрывается
+// (нужно живое дерево UIA). Проверяется e2e-прогоном на Windows.
+[ExcludeFromCodeCoverage]
 public class UIAutomationServiceWindows : IUIAutomationProvider
 {
     private readonly CUIAutomation8 _automation = new();

@@ -1,15 +1,18 @@
-﻿using Interop.UIAutomationClient;
+﻿using System.Diagnostics.CodeAnalysis;
+using Interop.UIAutomationClient;
 using ISeeU.Application.Contracts;
 using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
+// Подписка на UIA-событие изменения свойства через COM. Не покрывается юнит-тестами.
+[ExcludeFromCodeCoverage]
 public class TargetObserverWinApi30 : ITargetObserver
 {
     private readonly int _propertyId;
     private readonly Action<int, object> _callback;
     private readonly IUIAutomation2 _automation;
-    private IUIAutomationElement _element;
+    private IUIAutomationElement? _element; // назначается в Start()
     private PropertyChangeHandler _comHandler; // отдельный класс для COM
     private IElement _ielement;
 

@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Wpf;
 
+[ExcludeFromCodeCoverage]
 public class Program
 {
     [STAThread]

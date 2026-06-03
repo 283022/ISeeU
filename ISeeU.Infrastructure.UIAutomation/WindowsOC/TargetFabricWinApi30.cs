@@ -1,10 +1,14 @@
-﻿using ConnectInfo;
+﻿using System.Diagnostics.CodeAnalysis;
+using ConnectInfo;
 using Interop.UIAutomationClient;
 using ISeeU.Application.Contracts;
 using ISeeU.Domain.Interfaces;
 
 namespace ISeeU.Infrastructure.UIAutomation.WindowsOC;
 
+// Привязана к COM (каст к WindowsElement + конкретные наблюдатели),
+// поэтому исключена из покрытия. Чистое правило выбора стратегии — в ObserveStrategyResolver.
+[ExcludeFromCodeCoverage]
 public class TargetFabricWinApi30(IUIAutomation2 automation2) : ITargetFabric
 {
     private readonly IUIAutomation2 _automation = automation2;
@@ -13,9 +17,7 @@ public class TargetFabricWinApi30(IUIAutomation2 automation2) : ITargetFabric
     {
         var nativeElement = ((WindowsElement)element).GetNativeElement();
 
-        // Стратегия наблюдения берётся из единого каталога, а не хардкода.
-        // Неизвестные свойства по умолчанию пробуем через UIA-событие.
-        var strategy = UiaPropertyCatalog.Get(propertyId)?.Strategy ?? ObserveStrategy.Event;
+        var strategy = ObserveStrategyResolver.Resolve(propertyId);
 
         if (strategy == ObserveStrategy.Polling)
             return new PollingObserver(nativeElement, propertyId, onPropertyChanged);

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -9,6 +10,7 @@ using Timer = System.Threading.Timer;
 
 namespace Wpf;
 
+[ExcludeFromCodeCoverage]
 public partial class ElementPickerWindow : Window
 {
     private readonly Timer _updateTimer;
