@@ -1,0 +1,60 @@
+name: CI
+
+# Когда запускать конвейер автоматически:
+on:
+  push:
+    branches: [ "**" ]      # любой пуш в любую ветку
+  pull_request:
+    branches: [ "**" ]      # и при открытии/обновлении pull request
+  workflow_dispatch:        # плюс возможность запустить вручную кнопкой в GitHub
+
+jobs:
+  build-test-coverage:
+    
+    runs-on: windows-latest
+
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+
+     
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+     
+      - name: Restore
+        run: dotnet restore
+
+      
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      
+      - name: Test + coverage
+        run: dotnet test --no-build -c Release --collect:"XPlat Code Coverage" --results-directory TestResults
+
+      
+      - name: Generate coverage report
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:"coverage-report" -reporttypes:"Html;TextSummary;MarkdownSummaryGithub"
+
+      
+      - name: Publish coverage summary
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path "coverage-report/SummaryGithub.md") {
+            Get-Content "coverage-report/SummaryGithub.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+
+      
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report
